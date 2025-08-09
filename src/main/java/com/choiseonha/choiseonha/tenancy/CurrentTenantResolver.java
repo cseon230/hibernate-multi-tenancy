@@ -11,14 +11,16 @@ import org.springframework.util.StringUtils;
 
 public class CurrentTenantResolver implements CurrentTenantIdentifierResolver<String> {
 
-    // 기본 테넌트: 지금은 RDS에 연결한 기본 DB명과 동일하게 두면 안전.
-    // (application.yml의 기본 DB가 firstRds 이므로 아래와 같이 둠
-    private static final String DEFAULT_TENANT = "firstRds";
-
     @Override
     public String resolveCurrentTenantIdentifier() {
         String tenantId = TenantContext.get();
-        return StringUtils.hasText(tenantId) ? tenantId : DEFAULT_TENANT;
+
+        // 필터에서 이미 유효성 검증을 했지만, 이중 안전장치로 null/blank 차단
+        if (!StringUtils.hasText(tenantId)) {
+            throw new IllegalStateException("No tenantId found in TenantContext. Request may be missing required header.");
+        }
+
+        return tenantId;
     }
 
     @Override
