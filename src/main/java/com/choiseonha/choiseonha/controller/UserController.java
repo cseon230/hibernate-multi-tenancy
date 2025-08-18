@@ -3,10 +3,7 @@ package com.choiseonha.choiseonha.controller;
 import com.choiseonha.choiseonha.entity.User;
 import com.choiseonha.choiseonha.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,8 +13,15 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/userList")
+    @GetMapping("/userlist")
     public List<User> getUserList(@RequestHeader(value = "X-Tenant-ID", required = false) String tenantId) {
         return userService.getUserList();
+    }
+
+    @PutMapping("/userpassword")
+    public User updateUserPwd(@RequestHeader(value = "X-Tenant-ID", required = false) String tenantId,
+                              @RequestParam(name = "userNo") Integer userNo,
+                              @RequestParam(name = "userPwd") String userPwd) {
+        return userService.updateUserPwd(userNo, userPwd);
     }
 }

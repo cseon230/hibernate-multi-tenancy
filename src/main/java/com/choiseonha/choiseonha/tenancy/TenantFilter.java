@@ -35,6 +35,8 @@ public class TenantFilter extends OncePerRequestFilter {
     // 연습용 유효 테넌트 목록
     private static final Set<String> VALID_TENANTS = Set.of("tenant1", "tenant2");
 
+    private static final String DEFAULT_TENANT = "firstRds"; // 기본스키마
+
     // OncePerRequestFilter 가 호출하는 템플릿 메서드. 이 안에서 요청 가공/검사를 함.
     // request: 들어온 HTTP 요청
     // response: 나갈 HTTP 응답
@@ -45,6 +47,18 @@ public class TenantFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+
+        String uri = request.getRequestURI();
+
+        if (isWhitelisted(uri)) {
+            try {
+                TenantContext.set(DEFAULT_TENANT);
+                filterChain.doFilter(request, response);
+            } finally {
+                TenantContext.clear();
+            }
+            return;
+        }
 
         String tenantId = request.getHeader(TENANT_HEADER);
 
@@ -71,5 +85,11 @@ public class TenantFilter extends OncePerRequestFilter {
             TenantContext.clear(); // 스레드 재사용 이슈 방지
         }
 
+    }
+
+    private boolean isWhitelisted(String uri) {
+        return uri.startsWith("/swagger-ui")
+                || uri.startsWith("/v3/api-docs")
+                || uri.startsWith("/swagger-resources");
     }
 }
